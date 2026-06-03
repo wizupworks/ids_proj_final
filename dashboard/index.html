@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Explainable Hierarchical Hybrid IDS Dashboard - Unified</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Explainable Hierarchical Hybrid IDS (Unified)</h1>
+        <p>Dissertation control center with integrated Step 3 V2 live simulation tab.</p>
+      </div>
+      <div class="top-actions">
+        <a href="./step3_v2.html" style="color:#b7d8eb;text-decoration:none;border:1px solid #2a4a5e;padding:6px 10px;border-radius:8px;">Step 3 V2 Live</a>
+        <button id="pollToggleBtn" type="button">Pause Polling</button>
+        <button id="tinyHeaderRefreshBtn" type="button">Tiny Refresh</button>
+        <button id="manualRefreshBtn" type="button">Refresh</button>
+        <div id="pipelineStepStatus" class="status-mini-card">Step status: loading...</div>
+      </div>
+    </header>
+
+    <nav id="tabNav" class="tab-nav"></nav>
+
+    <section id="globalStatus" class="status-strip"></section>
+
+    <main id="tabContent" class="tab-content"></main>
+  </div>
+
+  <template id="sectionTemplate">
+    <section class="page">
+      <h2 class="page-title"></h2>
+      <p class="page-subtitle"></p>
+      <div class="page-body"></div>
+    </section>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 3 Visual Dashboard</title>
+  <link rel="stylesheet" href="./step3_visual.css">
+</head>
+<body>
+  <div id="visualRoot" class="visual-root">
+    <header class="visual-header">
+      <div>
+        <h1>Step 3 Visual Flow</h1>
+        <p>Factory/Enterprise Network → Child listeners → Parent Server + runtime SHAP evidence</p>
+      </div>
+      <div class="header-meta">
+        <div><span>Model:</span> <strong id="modelLabel">-</strong></div>
+        <div><span>Replay Run:</span> <strong id="runLabel">-</strong></div>
+        <div><span>Updated:</span> <strong id="updatedLabel">-</strong></div>
+      </div>
+    </header>
+
+    <section class="visual-body">
+      <main class="canvas-pane">
+        <canvas id="flowCanvas" width="1400" height="920"></canvas>
+      </main>
+      <aside class="evidence-pane">
+        <div class="counter-grid" id="counterGrid"></div>
+        <section>
+          <h2>Incident Alerts</h2>
+          <div id="incidentLog" class="log-box"></div>
+        </section>
+        <section>
+          <h2>Parent Server Log</h2>
+          <div id="parentLog" class="log-box"></div>
+        </section>
+        <section>
+          <h2>Runtime SHAP Explanations</h2>
+          <div id="shapLog" class="log-box"></div>
+        </section>
+      </aside>
+    </section>
+  </div>
+
+  <script type="module" src="./step3_visual.js"></script>
+</body>
+</html>

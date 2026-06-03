@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Step 3 V2 Live Dashboard</title>
+  <link rel="stylesheet" href="./step3_v2.css">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head>
+<body>
+  <main class="v2-root">
+    <header class="hero">
+      <div>
+        <h1>Step 3 V2 Simulation Control</h1>
+        <p>Single-container multi-child runtime with SSE live stream and queue-backed ingestion.</p>
+      </div>
+      <div class="hero-meta">
+        <div><span>Active Simulation</span><strong id="activeSimulation">-</strong></div>
+        <div><span>Queue Backend</span><strong id="queueBackend">-</strong></div>
+        <div><span>Queue Lag</span><strong id="queueLag">0</strong></div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <label class="field">
+        <span>Model Version</span>
+        <select id="modelSelect"></select>
+      </label>
+      <label class="field">
+        <span>SIM-ID</span>
+        <select id="simulationSelect">
+          <option value="">Select Simulation</option>
+        </select>
+      </label>
+      <button id="startBtn" class="btn btn-primary">Start Simulation</button>
+      <button id="stopBtn" class="btn btn-danger" disabled>Stop Simulation</button>
+      <button id="streamToggleBtn" class="btn btn-link" disabled>Pause Stream</button>
+      <span id="streamState" class="btn btn-link">stream: idle</span>
+    </section>
+    <section class="controls">
+      <span id="simStartStatus" class="btn btn-link">No active simulation.</span>
+    </section>
+
+    <section class="panel persistent-metrics">
+      <div class="persistent-head">
+        <h2>Step 3 Metrics (Persistent)</h2>
+        <div id="persistentMetricsMeta" class="persistent-meta">No metrics snapshot loaded.</div>
+      </div>
+      <section class="persistent-cards">
+        <article class="persistent-card">
+          <span>Stored Metrics</span>
+          <strong id="persistentPackets">0</strong>
+        </article>
+        <article class="persistent-card">
+          <span>Measured</span>
+          <strong id="persistentAlerts">0</strong>
+        </article>
+        <article class="persistent-card">
+          <span>Missing</span>
+          <strong id="persistentActions">0</strong>
+        </article>
+        <article class="persistent-card">
+          <span>Measured Coverage</span>
+          <strong id="persistentCoverage">0.000000</strong>
+        </article>
+      </section>
+      <div class="table-wrap">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Value</th>
+              <th>Numerator / Denominator</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="persistentMetricsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tabs">
+      <button class="tab-btn is-active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="parent">Parent Review</button>
+      <button class="tab-btn" data-tab="pcap">PCAP Metrics</button>
+      <button class="tab-btn" data-tab="hypothesis">Hypothesis Live</button>
+      <button class="tab-btn" data-tab="audit">Detailed Audit Logs</button>
+    </section>
+
+    <section id="tab-overview" class="tab-panel is-active">
+      <section class="grid">
+        <article class="panel chart-panel">
+          <h2>Per-Child Packet Throughput</h2>
+          <div id="packetsChart" class="chart"></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Per-Child Alerts</h2>
+          <div id="alertsChart" class="chart"></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Event Type Stream</h2>
+          <div id="eventsChart" class="chart"></div>
+        </article>
+        <article class="panel list-panel">
+          <h2>Simulation Runs</h2>
+          <div id="runsList" class="list"></div>
+        </article>
+        <article class="panel list-panel">
+          <h2>Incident Alerts</h2>
+          <div id="alertsList" class="list"></div>
+        </article>
+      </section>
+    </section>
+
+    <section id="tab-parent" class="tab-panel">
+      <section class="grid grid-two">
+        <article class="panel">
+          <h2>Review Summary By Scope</h2>
+          <div id="parentScopeSummary" class="list"></div>
+        </article>
+        <article class="panel">
+          <h2>Review Summary By Child Node</h2>
+          <div id="parentChildSummary" class="list"></div>
+        </article>
+      </section>
+      <article class="panel">
+        <h2>ML Alert Review (Parent)</h2>
+        <div class="table-wrap">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Child</th>
+                <th>Scope</th>
+                <th>Severity</th>
+                <th>Category</th>
+                <th>SHAP Confidence</th>
+                <th>Top Features</th>
+                <th>PCAP</th>
+                <th>Review</th>
+              </tr>
+            </thead>
+            <tbody id="parentReviewTableBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="tab-pcap" class="tab-panel">
+      <section class="pcap-top">
+        <article class="panel metric-panel">
+          <h2>Total PCAP Files</h2>
+          <div id="pcapFileCount" class="metric-value">0</div>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Total Packets</h2>
+          <div id="pcapPacketTotal" class="metric-value">0</div>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Aggregate Tx Rate (pps)</h2>
+          <div id="pcapRateTotal" class="metric-value">0</div>
+        </article>
+      </section>
+      <section class="grid grid-two">
+        <article class="panel chart-panel">
+          <h2>Packets Per PCAP File</h2>
+          <div id="pcapPacketsChart" class="chart"></div>
+        </article>
+        <article class="panel chart-panel">
+          <h2>Transmission Rate Per PCAP (pps)</h2>
+          <div id="pcapRateChart" class="chart"></div>
+        </article>
+      </section>
+      <article class="panel">
+        <h2>PCAP File Metrics</h2>
+        <div class="table-wrap">
+          <table class="metrics-table" id="pcapTable">
+            <thead>
+              <tr>
+                <th>PCAP File</th>
+                <th>Packets</th>
+                <th>Attack</th>
+                <th>Benign</th>
+                <th>Tx Rate (pps)</th>
+                <th>Avg Packet Rate (pps)</th>
+                <th>Alerts</th>
+                <th>Parent Actions</th>
+                <th>File Size</th>
+                <th>Source</th>
+                <th>Window</th>
+              </tr>
+            </thead>
+            <tbody id="pcapTableBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="tab-hypothesis" class="tab-panel">
+      <section class="controls">
+        <button id="hypothesisSyncBtn" class="btn btn-primary">Sync DB Snapshot</button>
+        <button id="hypothesisCopyBtn" class="btn btn-link">Copy Tables</button>
+        <button id="hypothesisDownloadBtn" class="btn btn-link">Download CSV Bundle</button>
+      </section>
+      <section class="pcap-top">
+        <article class="panel metric-panel">
+          <h2>Total Packets</h2>
+          <div id="hypPackets" class="metric-value">0</div>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Attack / Benign</h2>
+          <div id="hypAttackBenign" class="metric-value">0 / 0</div>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Alerts / Actions</h2>
+          <div id="hypAlertsActions" class="metric-value">0 / 0</div>
+        </article>
+      </section>
+      <article class="panel">
+        <h2>Hypothesis Outcomes</h2>
+        <div class="table-wrap">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Hypothesis</th>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Threshold</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="hypothesisOutcomeBody"></tbody>
+          </table>
+        </div>
+      </article>
+      <section class="grid grid-two">
+        <article class="panel">
+          <h2>By Child Node</h2>
+          <div class="table-wrap">
+            <table class="metrics-table">
+              <thead>
+                <tr>
+                  <th>Child</th>
+                  <th>Packets</th>
+                  <th>Attack</th>
+                  <th>Benign</th>
+                  <th>Alerts</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="hypothesisChildBody"></tbody>
+            </table>
+          </div>
+        </article>
+        <article class="panel">
+          <h2>By Scope</h2>
+          <div class="table-wrap">
+            <table class="metrics-table">
+              <thead>
+                <tr>
+                  <th>Scope</th>
+                  <th>Packets</th>
+                  <th>Attack</th>
+                  <th>Benign</th>
+                  <th>Alerts</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="hypothesisScopeBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+      <article class="panel">
+        <h2>By PCAP File</h2>
+        <div class="table-wrap">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>PCAP</th>
+                <th>Packets</th>
+                <th>Attack</th>
+                <th>Benign</th>
+                <th>Tx Rate</th>
+                <th>Alerts</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="hypothesisPcapBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section id="tab-audit" class="tab-panel">
+      <section class="audit-toolbar">
+        <label class="field field-audit">
+          <span>Filter Contains</span>
+          <input id="auditFilter" type="text" placeholder="e.g. child_alert_detected, high, queue lag">
+        </label>
+      </section>
+      <article class="panel">
+        <h2>Detailed Audit Log File (Active Simulation)</h2>
+        <div id="auditList" class="list list-large"></div>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="./step3_v2.js"></script>
+</body>
+</html>
